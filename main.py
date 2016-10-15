@@ -64,6 +64,7 @@ from settingsjson import settings_vesslog_json, settings_email_json, settings_cr
 
 from crvdata import CrvData, CrvIncData
 from crvftp import CrvFtp
+from crvURL import CrvURL
 from crvprofile import CrvProfile
 from crvgps import CrvGPS
 from crvMessage import MessageBox
@@ -1083,8 +1084,9 @@ class BTextInput(CTextInput):
         Logger.debug('CRV: dropopen. mode..' + str(self.keyboard_mode))
         if self.keyboard_mode == 'managed' and self.justdismissed:
             Logger.debug('CRV: showkeyboard')
-            self.show_keyboard() ## raise the keyboard on android
-            self.keyboard_up = True
+            if not self.readonly:
+                self.show_keyboard() ## raise the keyboard on android
+                self.keyboard_up = True
         self.justdismissed = False
 
         # _win = instance.get_parent_window()
@@ -4727,7 +4729,8 @@ class CRV(App):
     modglobal.data = data
 
     crew = CrvCrew(data)
-    ftp = CrvFtp(data, data.linzhost, data.linzuser, data.linzpass)
+    #ftp = CrvFtp(data, data.linzhost, data.linzuser, data.linzpass)
+    mycurl = CrvURL(data)
     boatlog = CrvLogBook(data, crew, gps)
     logarchive = CrvLogArchive(data)
     managecrew = CrvManageCrew(crew)
@@ -6997,7 +7000,7 @@ class CRV(App):
         try:
             #self.data.statusbarclockspaused = True
             #self.crv_do_updatetides()
-            mythread = threading.Thread(target=self.crv_do_updatetides)
+            mythread = threading.Thread(target=self.crv_do_updatetides_from_url)
             mythread.start()
         except:
             Logger.info('CRV: Unable to create thread to update tides')
@@ -7048,6 +7051,36 @@ class CRV(App):
         else:
             g.foreground_color = self.crvcolor.getboldcolor()
             g = self.displayaction("Error connecting to " + self.data.linzhost, 'red')
+
+        self.displayaction('', enablebutton=True, progressval=-2)
+        #self.data.statusbarclockspaused = False
+
+    def crv_do_updatetides_from_url(self):
+        button = self.data.datarecord.getobject('upddispback')
+        button.disabled = False
+        currentYear = datetime.datetime.now().year
+        ts = self.data.gettidestation()
+        baseURL="http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/maj-ports/csv/"
+        #v="http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/maj-ports/csv/Auckland%202016.csv"
+        fromurl = baseURL + ts + '%20' + str(currentYear) + '.csv'
+        tofile = os.path.join(self.data.datadir, ts + str(currentYear) + '.csv')
+
+        # so update the tides. You need to use a thread as the ftp download
+        # is blocking
+        if not self.data.have_internet():
+            MessageBox(self, titleheader="Cannot update tides",
+                   message="Please ensure the network is connected and try again.")
+            return
+
+        g = self.displayaction("Getting " + fromurl)
+        sz = 30000
+        g = self.displayaction('... ' + str(sz) + ' (bytes - approx)')
+
+        self.displayaction('', progressmax=sz, progressval=0)
+
+        g = self.displayaction("Retrieving tide information for " + str(currentYear) + ' from ' + self.data.linzhost)
+
+        self.mycurl.getfile(fromurl, tofile, sz, self.displayaction, button)
 
         self.displayaction('', enablebutton=True, progressval=-2)
         #self.data.statusbarclockspaused = False
@@ -9196,4 +9229,5 @@ class CRV(App):
 
 if __name__ == '__main__':
     Logger.info('CRV: run')
+    Window.fullscreen = True
     CRV().run()
