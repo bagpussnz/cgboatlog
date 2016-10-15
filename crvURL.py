@@ -17,6 +17,7 @@ class CrvURL:
 
         self.dspact = None
         self.abutton = None
+        self.ian = "check git"
 
     #def set_property(value, *largs):
     #    self.data.getobject('upddisppb').value = value
