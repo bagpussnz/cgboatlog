@@ -5,6 +5,7 @@ import kivy
 #kivy.require('1.9.0')
 from kivy.app import App
 from kivy.uix.widget import Widget
+from kivy.uix.vkeyboard import VKeyboard
 from kivy.config import Config
 from kivy.config import ConfigParser
 from kivy.uix.behaviors import ButtonBehavior
@@ -984,6 +985,8 @@ class BTextInput(CTextInput):
 
         self.readonly = kwargs['readonly']
         self.defreadonly = self.readonly
+        if self.readonly:
+            self.is_focusable = False
         self.togreadonlyvalue = True  # initially set readonly
         self.disabledropdown = False
 
@@ -1027,13 +1030,16 @@ class BTextInput(CTextInput):
     #     return True
 
     def on_focus(self, w, value):
+        #ret=True
         if value:
             Logger.debug('CRV: User focused')
-            self.readonly = True
+            #self.readonly = True
+            #ret=False
         else:
             Logger.debug('CRV: User defocused')
             self.readonly = self.defreadonly
             self.disabledropdown = False
+        #return ret
 
     def on_double_tap(self):
         Logger.debug('CRV: double tap')
@@ -1162,7 +1168,7 @@ class BTextInput(CTextInput):
         """
         Called from a dropdown - can dynamically alter dropdown list based on input.
         """
-        #Logger.debug('CRV: db.... ')
+        Logger.debug('CRV: db.... ')
         _win = instance.get_parent_window()
         if _win is None or self.disabledropdown:
             return True
@@ -9229,5 +9235,6 @@ class CRV(App):
 
 if __name__ == '__main__':
     Logger.info('CRV: run')
-    Window.fullscreen = True
+    #VKeyboard.docked = False
+    #Window.fullscreen = True
     CRV().run()
