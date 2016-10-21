@@ -284,6 +284,7 @@ class MyVKeyboardQwerty(VKeyboard):
             Don't call this method directly, use :meth:`setup_mode` instead.
         '''
 
+
         self.do_translation = False
         self.do_rotation = False
         self.do_scale = False
@@ -297,6 +298,7 @@ class MyVKeyboardQwerty(VKeyboard):
 #        print "win.height " + str(win.height)
 #        print "self.height " + str(self.height)
         ty = win.height - (self.height * self.scale) - 30.0
+        Logger.info('CRV: setup mode dock qwerty keyboard ' + str(ty))
 
         if ty >= self.target.top:
             self.pos = 0.0, ty  # (30.0) How do you get windows titlebar height
@@ -309,6 +311,8 @@ class MyVKeyboardQwerty(VKeyboard):
 
     def _update_dock_mode(self, win, *largs):
         ty = win.height - (self.height * self.scale) - 30.0
+        Logger.info('CRV: update mode dock qwerty keyboard ' + str(ty))
+
         if ty >= self.target.top:
             self.pos = 0.0, ty  # top
         else:
@@ -343,6 +347,9 @@ class MyVKeyboardNumeric(VKeyboard):
         self.scale = scale
 #        print "setup scale " + str(scale)
         ty = win.height - (self.height * self.scale) - 30.0
+
+        Logger.info('CRV: setup mode dock qwerty keyboard')
+
         if ty >= self.target.top:
             self.pos = 0.0, ty
         else:
@@ -354,6 +361,8 @@ class MyVKeyboardNumeric(VKeyboard):
 
     def _update_dock_mode(self, win, *largs):
         ty = win.height - (self.height * self.scale) - 30.0
+        Logger.info('CRV: update mode dock num keyboard ' + str(ty))
+
         if ty >= self.target.top:
             self.pos = 0.0, win.height - self.height - 30.0
         else:
@@ -5164,8 +5173,8 @@ class CRV(App):
 
     def hide_kbd_or_exit(self, *args):
         if not self.exitnext:
-            if platform == "android":
-                android.hide_keyboard()
+            #if platform == "android":    ??????
+            #    android.hide_keyboard()
             if self.data.sm.current == 'screen_main':
                 self.exitnext = True
                 Clock.schedule_once(lambda *args: setattr(self, "exitnext", False), 2)
