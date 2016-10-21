@@ -3,6 +3,8 @@ from kivy.lang import Builder
 from kivy.uix.vkeyboard import VKeyboard
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
+from kivy.vector import Vector
+
 
 kv="""
 <MyVKeyboardQwerty>:
@@ -57,7 +59,7 @@ kv="""
 class MyVKeyboardQwerty(VKeyboard):
     def __init__(self, **kwargs):
         super(MyVKeyboardQwerty, self).__init__(**kwargs)
-        self.setup_mode(False)
+        self.setup_mode(True)
 
     def setup_mode_dock(self, *largs):
         '''Override from VKeyboard
@@ -76,9 +78,16 @@ class MyVKeyboardQwerty(VKeyboard):
         self.rotation = 0
         win = self.get_parent_window()
         scale = win.width / float(self.width)
+        #scale = 1.0
+        self.do_scale
         self.scale = scale
         print "setup scale " + str(scale)
-        ty = win.height - ((self.height * scale) - 30.0)
+        print "win.height " + str(win.height)
+        print "self.height " + str(self.height)
+        #ty = win.height - ((self.height * scale) - 30.0)
+        #ty = win.height - ((self.height-30) * scale)
+        ty = win.height - (self.height * self.scale) - 30.0
+
 
         #ty = win.height - self.height - 30.0
         if ty >= self.target.top:
@@ -91,13 +100,15 @@ class MyVKeyboardQwerty(VKeyboard):
         win.bind(on_resize=self._update_dock_mode)
 
     def _update_dock_mode(self, win, *largs):
-        ty = win.height - ((self.height * self.scale) - 30.0)
-        #ty = win.height - self.height - 30.0
+        #ty = win.height - ((self.height * self.scale) - 30.0)
+        #ty = win.height - (self.height * self.scale) - 30.0
+        ty = win.height - self.height - 30.0
         if ty >= self.target.top:
             self.pos = 0.0, ty  # top
         else:
             self.pos = 0, 30 #botton
-        print "setup pos " + str(self.pos)
+        print "update pos " + str(self.pos)
+        print "update scale " + str(self.scale)
 
 
 class MyVKeyboardNumeric(VKeyboard):
@@ -125,9 +136,9 @@ class MyVKeyboardNumeric(VKeyboard):
         scale = win.width / float(self.width)
         self.scale = scale
         print "setup scale " + str(scale)
-        ty = win.height - ((self.height - 30.0) * scale)
+        ty = win.height - (self.height * self.scale) - 30.0
         if ty >= self.target.top:
-            self.pos = 0.0, win.height - self.height - 30.0
+            self.pos = 0.0, ty
         else:
             self.pos = 0, 30
 
@@ -136,7 +147,8 @@ class MyVKeyboardNumeric(VKeyboard):
         win.bind(on_resize=self._update_dock_mode)
 
     def _update_dock_mode(self, win, *largs):
-        ty = win.height - self.height - 30.0
+        ty = win.height - (self.height * self.scale) - 30.0
+#        ty = win.height - self.height - 30.0
         if ty >= self.target.top:
             self.pos = 0.0, win.height - self.height - 30.0
         else:
@@ -225,7 +237,7 @@ class myApp(App):
         b6.add_widget(t61)
         t62 = MyTextInput()
         b6.add_widget(t62)
-        t63 = MyTextInput(input_type='number', input_filter='float')
+        t63 = MyTextInput(text="12", input_type='number', input_filter='float')
         b6.add_widget(t63)
 
         b7 = BoxLayout(orientation='horizontal')

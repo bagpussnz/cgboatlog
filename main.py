@@ -261,8 +261,104 @@ kv = """
             disabled_color: root.dimcol
             font_size:root.font_size
 
+<MyVKeyboardQwerty>
+    layout: 'qwerty'
+
+<MyVKeyboardNumeric>
+    layout: 'numeric.json'
 """
 
+class MyVKeyboardQwerty(VKeyboard):
+    def __init__(self, **kwargs):
+        super(MyVKeyboardQwerty, self).__init__(**kwargs)
+        self.setup_mode(True)
+
+    def setup_mode_dock(self, *largs):
+        '''Override from VKeyboard
+
+        Dock mode will reset the rotation, disable translation, rotation and
+        scale. Scale and position will be automatically adjusted to attach the
+        keyboard to the bottom of the screen.
+
+        .. note::
+            Don't call this method directly, use :meth:`setup_mode` instead.
+        '''
+
+        self.do_translation = False
+        self.do_rotation = False
+        self.do_scale = False
+        self.rotation = 0
+        win = self.get_parent_window()
+        scale = max(win.width / float(self.width), 1.5)
+#        scale = win.width / float(self.width)
+        #scale = 1.0
+        self.scale = scale
+#        print "setup scale " + str(scale)
+#        print "win.height " + str(win.height)
+#        print "self.height " + str(self.height)
+        ty = win.height - (self.height * self.scale) - 30.0
+
+        if ty >= self.target.top:
+            self.pos = 0.0, ty  # (30.0) How do you get windows titlebar height
+        else:
+            self.pos = 0, 30.0
+
+#        print "setup pos " + str(self.pos)
+
+        win.bind(on_resize=self._update_dock_mode)
+
+    def _update_dock_mode(self, win, *largs):
+        ty = win.height - (self.height * self.scale) - 30.0
+        if ty >= self.target.top:
+            self.pos = 0.0, ty  # top
+        else:
+            self.pos = 0, 30.0 #bottom
+#        print "update pos " + str(self.pos)
+#        print "update scale " + str(self.scale)
+
+
+class MyVKeyboardNumeric(VKeyboard):
+    def __init__(self, **kwargs):
+        super(MyVKeyboardNumeric, self).__init__(**kwargs)
+        self.setup_mode(False)
+
+    def setup_mode_dock(self, *largs):
+        ''' Override from VKeyboard.
+
+        Dock mode will reset the rotation, disable translation, rotation and
+        scale. Scale and position will be automatically adjusted to attach the
+        keyboard to the bottom of the screen.
+
+        .. note::
+            Don't call this method directly, use :meth:`setup_mode` instead.
+        '''
+
+        self.do_translation = False
+        self.do_rotation = False
+        self.do_scale = False
+        self.rotation = 0
+        win = self.get_parent_window()
+        scale = max(win.width / float(self.width), 1.5)
+
+        self.scale = scale
+#        print "setup scale " + str(scale)
+        ty = win.height - (self.height * self.scale) - 30.0
+        if ty >= self.target.top:
+            self.pos = 0.0, ty
+        else:
+            self.pos = 0, 30.0
+
+#        print "setup pos " + str(self.pos)
+
+        win.bind(on_resize=self._update_dock_mode)
+
+    def _update_dock_mode(self, win, *largs):
+        ty = win.height - (self.height * self.scale) - 30.0
+        if ty >= self.target.top:
+            self.pos = 0.0, win.height - self.height - 30.0
+        else:
+            self.pos = 0, 30.0
+#        print "setup pos " + str(self.pos)
 
 class ImageButton(ButtonBehavior, Image):
     pass
@@ -758,6 +854,11 @@ class MyTextInput(TextInput):
         super(MyTextInput, self).__init__(**kwargs)
         self.setcolors()
         App.get_running_app().bind(daynight = self.switchDayNight)
+
+        self.wx = self.x
+        self.wy = self.y
+        self.wpos = self.pos
+
         if kwargs.has_key('font_size'):
             self.font_size = kwargs['font_size']
         else:
@@ -773,7 +874,26 @@ class MyTextInput(TextInput):
     def switchDayNight(self,inst,daynight):
         self.setcolors()
 
-class CTextInput(TextInput):
+
+    def on_focus(self, instance, value, *largs):
+        win = self.get_root_window()
+
+        if win:
+            win.release_all_keyboards()
+            win._keyboards = {}
+
+            if value:  # User focus; use special keyboard
+                if self.input_type == 'number':
+                    win.set_vkeyboard_class(MyVKeyboardNumeric)
+                else:
+                    win.set_vkeyboard_class(MyVKeyboardQwerty)
+
+                print "VKeyboard true:", win._vkeyboard_cls, VKeyboard.layout_path
+            else:  # User defocus; switch back to standard keyboard
+                win.set_vkeyboard_class(VKeyboard)
+                print "VKeyboard false:", win._vkeyboard_cls, VKeyboard.layout_path
+
+class CTextInput(MyTextInput):
     """
     A text input widget with text aligned to the middle (vertically)
     (Widget defined in kv string)
@@ -806,7 +926,7 @@ class CTextInput(TextInput):
     def switchDayNight(self,inst,daynight):
         self.setcolors()
 
-class CNumInput(TextInput):
+class CNumInput(MyTextInput):
     """
     A text input widget with text aligned to the middle (vertically)
     Only accepts numerics
@@ -859,7 +979,7 @@ class CNumInput(TextInput):
                 return
         super(CNumInput, self).insert_text(substring, from_undo)
 
-class CFloatInput(TextInput):
+class CFloatInput(MyTextInput):
 
     crvcolor = CrvColor()
     color = ListProperty(crvcolor.getfgcolor())
@@ -875,6 +995,7 @@ class CFloatInput(TextInput):
     def __init__(self, **kwargs):
         super(CFloatInput, self).__init__(**kwargs)
         self.setcolors()
+
         App.get_running_app().bind(daynight = self.switchDayNight)
         if kwargs.has_key('font_size'):
             self.font_size = kwargs['font_size']
@@ -899,7 +1020,7 @@ class CFloatInput(TextInput):
             s = '.'.join([re.sub(pat, '', s) for s in substring.split('.', 1)])
         return super(CFloatInput, self).insert_text(s, from_undo=from_undo)
 
-class CTimeInput(TextInput):
+class CTimeInput(MyTextInput):
     """
     A text input widget with text aligned to the middle (vertically)
     Only accepts time formats - i.e. numerics and a :
