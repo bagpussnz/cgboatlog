@@ -4,6 +4,9 @@ from kivy.uix.vkeyboard import VKeyboard
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.config import Config
+from kivy.logger import Logger
+import time
+import datetime
 
 kv="""
 <MyVKeyboardQwerty>:
@@ -55,6 +58,32 @@ kv="""
 ["\u232b", null, "backspace", 1]]
 }
 '''
+
+class clsLog():
+    def __init__(self):
+        self.lasttime = -1
+        Logger.setLevel('DEBUG')
+
+
+    def tm(self):
+        millis = int(round(time.time() * 1000))
+        if self.lasttime == -1:
+            m = ' [' + datetime.datetime.now().strftime("%y/%m/%d %H:%M:%S") + ']'
+        else:
+            m = ' [' + str(millis - self.lasttime) + ' ms]'
+        self.lasttime = millis
+
+        return m
+
+    def info(self, *args):
+        m = self.tm()
+        Logger.info(args[0] + m)
+
+    def debug(self, *args):
+        m = self.tm()
+        Logger.debug(args[0] + m)
+
+
 class MyVKeyboardQwerty(VKeyboard):
     def __init__(self, **kwargs):
         super(MyVKeyboardQwerty, self).__init__(**kwargs)
@@ -80,6 +109,8 @@ class MyVKeyboardQwerty(VKeyboard):
         #scale = 1.0
         self.do_scale
         self.scale = scale
+        Logger.info("vtest: setup scale " + str(scale))
+
         print "setup scale " + str(scale)
         print "win.height " + str(win.height)
         print "self.height " + str(self.height)
@@ -134,7 +165,7 @@ class MyVKeyboardNumeric(VKeyboard):
         win = self.get_parent_window()
         scale = win.width / float(self.width)
         self.scale = scale
-        print "setup scale " + str(scale)
+        Logger.info("vtest: setup scale " + str(scale))
         ty = win.height - (self.height * self.scale) - 30.0
         if ty >= self.target.top:
             self.pos = 0.0, ty
@@ -170,6 +201,8 @@ class MyTextInput(TextInput):
             win.release_all_keyboards()
             win._keyboards = {}
 
+            Logger.info("vtest: input type " + str(value))
+
             if value: #User focus; use special keyboard
                 if self.input_type == 'number':
                     win.set_vkeyboard_class(MyVKeyboardNumeric)
@@ -187,11 +220,14 @@ class MyTextInput(TextInput):
 class vtest(App):
 
     def build(self):
+        Logger = clsLog()
+
         Builder.load_string(kv)
 
         self.approot = BoxLayout(orientation='vertical')
         self.keyboard_mode = Config.get("kivy", "keyboard_mode")
 
+        Logger.info("vtest: keyboardmode " + str(self.keyboard_mode))
         b1 = BoxLayout(orientation='horizontal')
         t11 = MyTextInput(text="mode is " + self.keyboard_mode)
         b1.add_widget(t11)
@@ -262,5 +298,6 @@ class vtest(App):
 
 
 if __name__ == "__main__":
+    VKeyboard.docked = True
     vtest().run()
 
