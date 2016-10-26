@@ -109,7 +109,7 @@ class MyVKeyboardQwerty(VKeyboard):
         #scale = 1.0
         self.do_scale
         self.scale = scale
-        Logger.info("vtest: setup scale " + str(scale))
+        Logger.info("vtest: docked setup scale " + str(scale))
 
         print "setup scale " + str(scale)
         print "win.height " + str(win.height)
@@ -219,6 +219,7 @@ class MyTextInput(TextInput):
 
 class vtest(App):
 
+    keyboard_mode = ""
     def build(self):
         Logger = clsLog()
 
@@ -229,7 +230,7 @@ class vtest(App):
 
         Logger.info("vtest: keyboardmode " + str(self.keyboard_mode))
         b1 = BoxLayout(orientation='horizontal')
-        t11 = MyTextInput(text="mode is " + self.keyboard_mode)
+        t11 = MyTextInput(text="mode is " + str(self.keyboard_mode))
         b1.add_widget(t11)
         t12 = MyTextInput()
         b1.add_widget(t12)
