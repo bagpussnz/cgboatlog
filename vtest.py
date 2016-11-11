@@ -227,12 +227,12 @@ class vtest(App):
 
         self.approot = BoxLayout(orientation='vertical')
         self.keyboard_mode = Config.get("kivy", "keyboard_mode")
-
+        f = Config.filename
         Logger.info("vtest: keyboardmode " + str(self.keyboard_mode))
         b1 = BoxLayout(orientation='horizontal')
         t11 = MyTextInput(text="mode is " + str(self.keyboard_mode))
         b1.add_widget(t11)
-        t12 = MyTextInput()
+        t12 = MyTextInput(text=f)
         b1.add_widget(t12)
         t13 = MyTextInput(text="12", input_type='number', input_filter='int')
         b1.add_widget(t13)
