@@ -271,7 +271,7 @@ kv = """
 class MyVKeyboardQwerty(VKeyboard):
     def __init__(self, **kwargs):
         super(MyVKeyboardQwerty, self).__init__(**kwargs)
-        self.setup_mode(True)
+        self.setup_mode(False)
 
     def setup_mode_dock(self, *largs):
         '''Override from VKeyboard
@@ -4847,16 +4847,18 @@ class CrvCrew:
 #
 class CRV(App):
     Logger.info("CRV: Class CRV: INIT")
+
     if __name__ in '__main__':
         if platform != 'android':
             Window.size=(1280,697)
             #Window.size=(1920,1200)
             #Window.fullscreen = True   # yuk!
-        else:
-            Window.softinput_mode = 'below_target'
+        #else:
+            #Window.softinput_mode = 'below_target'
             #Window.softinput_mode = 'pan'   yuk
 
     approot = None
+    keyboard_mode = 'dock'
     sm = None
     crvcolor = CrvColor()
     gps = CrvGPS(Logger)

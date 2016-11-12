@@ -221,7 +221,7 @@ class MyTextInput(TextInput):
 
 class vtest(App):
 
-    keyboard_mode = ""
+    keyboard_mode = 'dock'
     def build(self):
         Logger = clsLog()
 
