@@ -9,11 +9,18 @@ from kivy.uix.vkeyboard import VKeyboard
 from kivy.config import Config
 from kivy.core.window import Window
 
-print "config file = " + Config.filename
+import datetime
+from modlogging import clsLog
+
+Logger=clsLog()
+Logger.info("CRV: MAIN: App started")
+
+
+Logger.info("config file = " + Config.filename)
 x = Config.get("kivy", "keyboard_mode")
-print "keyboard at start is " + x
+Logger.info("keyboard at start is " + x)
 if x != "dock":
-    print 'setting dock'
+    Logger.info('setting dock')
     Config.set('kivy', 'keyboard_mode', 'dock')
     Window.allow_vkeyboard = True
     Window.single_vkeyboard = True
@@ -59,29 +66,27 @@ if platform == 'linux':
 
 from crvgraph import Graph, MeshLinePlot, SmoothLinePlot, ContourPlot
 
-from os.path import join
-import json
-import datetime
-import time
+#from os.path import join
+#import json
+#import time
 import re
-import csv
+#import csv
 import math
 import threading
 
 import modglobal
 
 from functools import partial
-from email.utils import parseaddr
+#from email.utils import parseaddr
 
 from settingsjson import settings_vesslog_json, settings_email_json, settings_crvapp_json
 
 from crvdata import CrvData, CrvIncData
-from crvftp import CrvFtp
+#from crvftp import CrvFtp
 from crvURL import CrvURL
 from crvprofile import CrvProfile
 from crvgps import CrvGPS
 from crvMessage import MessageBox
-from modlogging import clsLog
 
 global lightSensor
 global simlightSensor
@@ -89,10 +94,6 @@ global simlightSensor
 #
 # Handle light sensor on device - may need to do something else for ios
 #
-Logger=clsLog()
-
-Logger.info("CRV: MAIN: App started")
-
 if platform == 'android':
     import android
     Logger.info('CRV:ANDROID: import lightsensor')
@@ -9378,5 +9379,4 @@ class CRV(App):
 #
 
 if __name__ == '__main__':
-    Logger.info('CRV: run')
     CRV().run()
