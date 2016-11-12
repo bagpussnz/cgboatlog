@@ -229,6 +229,8 @@ class vtest(App):
 
         self.approot = BoxLayout(orientation='vertical')
         self.keyboard_mode = Config.get("kivy", "keyboard_mode")
+        Config.set('kivy', 'keyboard_mode', 'dock')
+        Config.write()
         try:
             file = Config.filename
 
