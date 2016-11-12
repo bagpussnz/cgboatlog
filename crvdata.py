@@ -43,6 +43,10 @@ class CrvData:
     statusbarclocknet = False   # every 30 seconds
     statusbarclockspaused = False
 
+    dirappdata = 'appdata'
+    dirtmp = 'tmp'
+    dirarchive = 'archive'
+
     shelf_file = ''
     shelf_fd = None
     shelf_restored_files = []
@@ -1783,8 +1787,9 @@ class CrvData:
         """
         self.datadir = value
 
-        self.ensuredir('tmp')
-        self.ensuredir('archive')
+        self.ensuredir(self.dirtmp)
+        self.ensuredir(self.dirappdata)
+        self.ensuredir(self.dirarchive)
 
         return True
 

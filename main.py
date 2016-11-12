@@ -430,7 +430,8 @@ class SigWidget(Widget):
         return ok
 
     def setfile(self, name):
-        self.filename = name + '.png'
+        self.filename = os.path.join(self.data.dirappdata, name+ '.png')
+
 
     def getfile(self):
         return self.filename
@@ -5964,7 +5965,7 @@ class CRV(App):
                 b.add_widget(MyLabel(text='[b]'+alttext+'[/b]', color=self.crvcolor.getfgcolor(), size_hint=[.75, 1], halign='left', markup=True,
                        font_size=modglobal.default_large_font_size))
             else:
-                image1 = ImageButton(source='cg.png', allow_stretch='true', opacity=10)
+                image1 = ImageButton(source='images/cg.png', allow_stretch='true', opacity=10)
                 image1.bind(on_release=self.crv_image_click)
                 b.add_widget(image1)
 
@@ -7377,13 +7378,13 @@ class CRV(App):
 
         newlogtitle, dumbool = self.crv_setup_button_text()
 
-        bnewlog = CustomButton(wid="newlog", image=self.data.getimagepath("newlog.png"), title=newlogtitle,
+        bnewlog = CustomButton(wid="newlog", image=self.data.getimagepath("images/newlog.png"), title=newlogtitle,
                                label=newlogtitle)
         self.data.datarecord.setobject('newlog', bnewlog, 'button')
         bnewlog.bind(on_press=self.crv_callback_click)
         bnewlog.bind(on_release=self.crv_callback_newlog)
 
-        bclosing = CustomButton(wid="End Log", image=self.data.getimagepath("closing.png"), title="End Log",
+        bclosing = CustomButton(wid="End Log", image=self.data.getimagepath("images/closing.png"), title="End Log",
                                 label="End Log")
         bclosing.bind(on_press=self.crv_callback_click)
         bclosing.bind(on_release=self.crv_callback_crvclose)
@@ -7391,7 +7392,7 @@ class CRV(App):
         bclosing.color = self.crvcolor.getfgcolor()
         self.data.datarecord.setobject('closing', bclosing, 'button')
 
-        bboatlog = CustomButton(wid="Activity Log", image=self.data.getimagepath('activity.png'),
+        bboatlog = CustomButton(wid="Activity Log", image=self.data.getimagepath('images/activity.png'),
                                     title="Activity Log", label="Activity Log")
         self.data.datarecord.setobject('butactivity', bboatlog, 'button')
         bboatlog.bind(on_press=self.crv_callback_click)
@@ -7399,12 +7400,12 @@ class CRV(App):
         bboatlog.disabled = True
         bboatlog.color = self.crvcolor.getfgcolor()
 
-        bsettings = CustomButton(wid="Settings", image=self.data.getimagepath("settings.png"),
+        bsettings = CustomButton(wid="Settings", image=self.data.getimagepath("images/settings.png"),
                                  title="Settings", label="Settings")
         bsettings.bind(on_press=self.crv_callback_click)
         bsettings.bind(on_release=self.crv_callback_settings)
 
-        barchive = CustomButton(wid="Log Archive", image=self.data.getimagepath("archive.png"), title="Log Archive",
+        barchive = CustomButton(wid="Log Archive", image=self.data.getimagepath("images/archive.png"), title="Log Archive",
                                   label="Log Archive")
         self.data.datarecord.setobject('logarchive', barchive, 'button')
         barchive.disabled = False
