@@ -77,11 +77,13 @@ class clsLog():
 
     def info(self, *args):
         m = self.tm()
-        Logger.info(args[0] + m)
+        print "myvtest:" + args[0] + m
+        Logger.info("myvtest:" + args[0] + m)
 
     def debug(self, *args):
         m = self.tm()
-        Logger.debug(args[0] + m)
+        print "myvtest:" + args[0] + m
+        Logger.debug("myvtest:" + args[0] + m)
 
 
 class MyVKeyboardQwerty(VKeyboard):
@@ -227,12 +229,24 @@ class vtest(App):
 
         self.approot = BoxLayout(orientation='vertical')
         self.keyboard_mode = Config.get("kivy", "keyboard_mode")
-        f = Config.filename
+        try:
+            file = Config.filename
+
+            with open(file, 'r') as f:
+                reader = f.readline()
+                Logger.debug("read " + reader)
+            f.close()
+
+        except IOError as e:
+            self.Logger.info("CRV: Failed to read cgunits.txt".format(e.errno, e.strerror))
+
+        print "vtest read config"
+
         Logger.info("vtest: keyboardmode " + str(self.keyboard_mode))
         b1 = BoxLayout(orientation='horizontal')
         t11 = MyTextInput(text="mode is " + str(self.keyboard_mode))
         b1.add_widget(t11)
-        t12 = MyTextInput(text=f)
+        t12 = MyTextInput(text=file)
         b1.add_widget(t12)
         t13 = MyTextInput(text="12", input_type='number', input_filter='int')
         b1.add_widget(t13)
