@@ -7,6 +7,19 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.vkeyboard import VKeyboard
 from kivy.config import Config
+from kivy.core.window import Window
+
+print "config file = " + Config.filename
+x = Config.get("kivy", "keyboard_mode")
+print "keyboard at start is " + x
+if x != "dock":
+    print 'setting dock'
+    Config.set('kivy', 'keyboard_mode', 'dock')
+    Window.allow_vkeyboard = True
+    Window.single_vkeyboard = True
+    Window.docked_vkeyboard = True
+
+
 from kivy.config import ConfigParser
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.dropdown import DropDown
@@ -15,22 +28,21 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.modalview import ModalView
+#from kivy.uix.modalview import ModalView
 from kivy.uix.image import Image
 from kivy.uix.textinput import TextInput
-from kivy.animation import Animation
+#from kivy.animation import Animation
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout, GridLayoutException
 from kivy.uix.progressbar import ProgressBar
-from kivy.uix.listview import ListView
-from kivy.uix.listview import ListItemLabel
-from kivy.uix.floatlayout import FloatLayout
+#from kivy.uix.listview import ListView
+#from kivy.uix.listview import ListItemLabel
+#from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.switch import Switch
-from kivy.uix.popup import Popup
+#from kivy.uix.switch import Switch
+#from kivy.uix.popup import Popup
 from kivy.lang import Builder
-from kivy.uix.anchorlayout import AnchorLayout
-from kivy.core.window import Window
+#from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.graphics import Color, Rectangle, Canvas, Line
 from kivy.properties import ListProperty, ObjectProperty, StringProperty, NumericProperty, BooleanProperty, VariableListProperty
@@ -9367,6 +9379,4 @@ class CRV(App):
 
 if __name__ == '__main__':
     Logger.info('CRV: run')
-    #VKeyboard.docked = False
-    #Window.fullscreen = True
     CRV().run()
