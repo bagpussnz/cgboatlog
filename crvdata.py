@@ -43,10 +43,6 @@ class CrvData:
     statusbarclocknet = False   # every 30 seconds
     statusbarclockspaused = False
 
-    dirappdata = 'appdata'
-    dirtmp = 'tmp'
-    dirarchive = 'archive'
-
     shelf_file = ''
     shelf_fd = None
     shelf_restored_files = []
@@ -774,8 +770,8 @@ class CrvData:
                 self.Logger.info('CRV: Process (' + str(n) + ') and Send ' + afile)
                 ok = self.formatlogs(tlog, topdata)
                 if ok:
-                    d = os.path.join(self.datadir, 'archive')
-                    tofile = os.path.join(d, 'SENT'+afile)
+                    #d = os.path.join(self.datadir, 'archive')
+                    tofile = os.path.join(self.dirarchive, 'SENT'+afile)
                     self.Logger.info('CRV: Email rename ' + thefile + ' to ' + tofile)
                     try:
                         os.rename(thefile, tofile)
@@ -1786,6 +1782,10 @@ class CrvData:
         The location of the data files for program.
         """
         self.datadir = value
+
+        self.dirtmp = os.path.join(self.datadir, "tmp")
+        self.dirappdata = os.path.join(self.datadir, "appdata")
+        self.dirarchive = os.path.join(self.datadir, "archive")
 
         self.ensuredir(self.dirtmp)
         self.ensuredir(self.dirappdata)
