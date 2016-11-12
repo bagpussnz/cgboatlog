@@ -16,11 +16,11 @@ Logger=clsLog()
 Logger.info("CRV: MAIN: App started")
 
 
-Logger.info("config file = " + Config.filename)
+Logger.info("CRV: config file.. " + Config.filename)
 x = Config.get("kivy", "keyboard_mode")
-Logger.info("keyboard at start is " + x)
+Logger.info("CRV: keyboard at start is " + x)
 if x != "dock":
-    Logger.info('setting dock')
+    Logger.info("CRV: setting dock")
     Config.set('kivy', 'keyboard_mode', 'dock')
     Window.allow_vkeyboard = True
     Window.single_vkeyboard = True
