@@ -22,6 +22,7 @@ Logger.info("CRV: keyboard at start is " + x)
 if x != "dock":
     Logger.info("CRV: setting dock")
     Config.set('kivy', 'keyboard_mode', 'dock')
+    Config.write()
     Window.allow_vkeyboard = True
     Window.single_vkeyboard = True
     Window.docked_vkeyboard = True
