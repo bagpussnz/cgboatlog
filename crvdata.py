@@ -1926,25 +1926,52 @@ class CrvData:
     def settidestations(self, file):
         ok = True
         try:
-            ftp = localftp.FTP(self.linzhost)
-            ftp.login(self.linzuser, self.linzpass)
+            # ftp = localftp.FTP(self.linzhost)
+            # ftp.login(self.linzuser, self.linzpass)
+            #
+            # data = []
+            #
+            # data = ftp.nlst()
+            #
+            # ftp.quit()
 
-            data = []
+            currentYear = datetime.datetime.now().year
+            nextyear = currentYear - 2000 + 1
+            # e.g. baseurl = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports2016-17.csv"
+            baseURL = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports"
 
-            data = ftp.nlst()
+            fromurl = baseURL + str(currentYear) + '-' + str(nextyear) + '.csv'
+            todata = []
 
-            ftp.quit()
-            self.Logger.info("CRV: Downloaded tidestations from " + self.linzhost)
-        #except ftplib.all_errors:
-        except localftp.all_errors:
-            self.Logger.info("CRV: failed to get tidestations from " + self.linzhost)
-            return False
+            # so update the tides. You need to use a thread as the ftp download
+            # is blocking
+            if not self.have_internet():
+                MessageBox(self, titleheader="Cannot update tidestations",
+                           message="Please ensure the network is connected and try again.")
+                return
+
+            #g = self.displayaction("Getting " + fromurl)
+            sz = 30000
+            #g = self.displayaction('... ' + str(sz) + ' (bytes - approx)')
+
+            #self.displayaction('', progressmax=sz, progressval=0)
+
+            #g = self.displayaction(
+            #    "Retrieving secondary tide ports for " + str(currentYear))
+
+            modglobal.mycurl.getdata(fromurl, todata, sz, None, None)
+
+            #self.displayaction('', enablebutton=True, progressval=-2)
+            # self.data.statusbarclockspaused = False
+            self.Logger.info("CRV: Downloaded tidestations")
+        except:
+            self.data.Logger.info('Cannot get tidestations')
 
         # example line: Ben Gunn 2017.csv
         # we want to create tidestations list with each element containing eg.
         # [ 'Ben Gunn', '2017', 'csv' ]
         self.tides.tidestations = []
-        for line in data:
+        for line in todata:
             station = line[:-9]
             year = line[-8:-4]
             ext = line[-3:]

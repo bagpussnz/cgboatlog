@@ -22,6 +22,7 @@ lastdopopup = None # to try and stop too many error popups
 
 data = None
 msgbox = None
+mycurl = None
 
 tmpxloc = None
 

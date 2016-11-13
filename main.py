@@ -4883,7 +4883,7 @@ class CRV(App):
 
     crew = CrvCrew(data)
     #ftp = CrvFtp(data, data.linzhost, data.linzuser, data.linzpass)
-    mycurl = CrvURL(data)
+    modglobal.mycurl = CrvURL(data)
     boatlog = CrvLogBook(data, crew, gps)
     logarchive = CrvLogArchive(data)
     managecrew = CrvManageCrew(crew)
@@ -7233,7 +7233,7 @@ class CRV(App):
 
         g = self.displayaction("Retrieving tide information for " + str(currentYear) + ' from ' + self.data.linzhost)
 
-        self.mycurl.getfile(fromurl, tofile, sz, self.displayaction, button)
+        modglobal.mycurl.getfile(fromurl, tofile, sz, self.displayaction)
 
         self.displayaction('', enablebutton=True, progressval=-2)
         #self.data.statusbarclockspaused = False
