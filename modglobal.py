@@ -18,7 +18,7 @@ alstatusbarclick = ''
 # The altstatusbarbox parent (used to test if caller is still active)
 alstatusbarparent = None
 
-lastdopopup = None # to try and stop too many error popups
+quickpopup = None # to try and stop too many error popups
 
 data = None
 msgbox = None
@@ -34,6 +34,6 @@ default_small_font_size = '14sp'
 default_tiny_font_size = '10sp'
 default_menu_font_size = '18sp'
 
-
+temptidestations = []
 
 

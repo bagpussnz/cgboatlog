@@ -27,7 +27,6 @@ if x != "dock":
     Window.single_vkeyboard = True
     Window.docked_vkeyboard = True
 
-
 from kivy.config import ConfigParser
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.dropdown import DropDown
@@ -71,7 +70,7 @@ from crvgraph import Graph, MeshLinePlot, SmoothLinePlot, ContourPlot
 #import json
 #import time
 import re
-#import csv
+import csv
 import math
 import threading
 
@@ -88,6 +87,7 @@ from crvURL import CrvURL
 from crvprofile import CrvProfile
 from crvgps import CrvGPS
 from crvMessage import MessageBox
+from crvpopup import CrvPopup
 
 global lightSensor
 global simlightSensor
@@ -4865,9 +4865,9 @@ class CRV(App):
 
     if __name__ in '__main__':
         if platform != 'android':
-            Window.size=(1280,697)
+            #Window.size=(1280,697)
             #Window.size=(1920,1200)
-            #Window.fullscreen = True   # yuk!
+            Window.fullscreen = True   # yuk!
         #else:
             #Window.softinput_mode = 'below_target'
             #Window.softinput_mode = 'pan'   yuk
@@ -5142,6 +5142,8 @@ class CRV(App):
         self.approot.add_widget(self.data.sm)
 
         modglobal.statusbar = MyBoundBox(orientation='horizontal', size_hint_y=.05)
+
+        modglobal.quickpopup = CrvPopup()
 
         modglobal.statusbarbox = BoxLayout(orientation='horizontal')
         modglobal.statusbar.add_widget(modglobal.statusbarbox)
@@ -7078,20 +7080,21 @@ class CRV(App):
             str(enablebutton) + ':' + str(progressval) + ':' + str(progressmax))
             obj = self.data.datarecord.getobject('upddispgrid')
             pb = self.data.datarecord.getobject('upddisppb')
-            if progressmax > 0:
-                pb.max = progressmax
-            if progressval > 0:
-                pb.value = progressval
-            else:
-                if progressval == -3:
-                    pb.value = 0
-                if progressval == -2:
-                    pb.value = pb.max
+            if pb is not None:
+                if progressmax > 0:
+                    pb.max = progressmax
+                if progressval > 0:
+                    pb.value = progressval
                 else:
-                    if pb.value+1 < pb.max:
-                        pb.value += 1
-                    else:
+                    if progressval == -3:
+                        pb.value = 0
+                    if progressval == -2:
                         pb.value = pb.max
+                    else:
+                        if pb.value+1 < pb.max:
+                            pb.value += 1
+                        else:
+                            pb.value = pb.max
 
             if enablebutton:
                 but = self.data.datarecord.getobject('upddispback')
@@ -8093,6 +8096,122 @@ class CRV(App):
                 w.disabled = True
                 # self.data.setlogactive(True)
 
+    def gettidestations(self):
+        """
+        Look for file cgtidestations.txt
+        If found use it - if not found, try to get tidestations from linz
+        """
+        crvpr = CrvProfile(Logger, 'gettidestations')
+        tss = []
+        ok = False
+        if len(self.data.tides.tidestations) == 0:
+            file = os.path.join(self.data.datadir, 'cgtidestations.csv')
+            try:
+                Logger.info('CRV: gettidestations: before open of ' + file)
+                with open(file, 'r') as f:
+                    reader = csv.reader(f)
+                    tslist = list(reader)
+                f.close()
+                self.data.tides.tidestations = tslist
+                Logger.info("CRV: Read tidestations from file %s", file)
+                ok = True
+            except (IOError, csv.Error):
+                # file didnt exist, try to ftp it.
+                Logger.info("CRV: Failed to read tidestations from file " + file)
+                ok = self.settidestations(file)
+
+        else:
+            tss = self.data.tides.tidestations
+
+        if ok:
+            ts = []
+            for n in self.data.tides.tidestations:
+                ts.append(n[0])
+            tss = list(set(ts))
+            tss.sort()
+
+        Logger.info('CRV: gettidestations. found ' + str(len(tss)))
+        crvpr.eprof()
+        return tss
+
+    def settidestations(self, file):
+        ok = True
+        try:
+            # ftp = localftp.FTP(self.linzhost)
+            # ftp.login(self.linzuser, self.linzpass)
+            #
+            # data = []
+            #
+            # data = ftp.nlst()
+            #
+            # ftp.quit()
+            if not self.data.sm.has_screen('screen_display_update'):
+                settings_display_update = self.crv_setup_display_update()
+                self.data.sm.add_widget(settings_display_update)
+
+            currentYear = datetime.datetime.now().year
+            nextyear = currentYear - 2000 + 1
+            # e.g. baseurl = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports2016-17.csv"
+            baseURL = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports"
+
+            fromurl = baseURL + str(currentYear) + '-' + str(nextyear) + '.csv'
+            todata = []
+
+            # so update the tides. You need to use a thread as the ftp download
+            # is blocking
+            if not self.data.have_internet():
+                MessageBox(self, titleheader="Cannot update tidestations",
+                           message="Please ensure the network is connected and try again.")
+                return
+
+            g = self.displayaction("Getting " + fromurl)
+            sz = 30000
+            g = self.displayaction('... ' + str(sz) + ' (bytes - approx)')
+
+            self.displayaction('', progressmax=sz, progressval=0)
+
+            g = self.displayaction(
+                "Retrieving secondary tide ports for " + str(currentYear))
+
+            pop = CrvPopup(mess='Getting tidestations', progress=True, buttontext='Done')
+
+            modglobal.mycurl.getdata(fromurl, modglobal.temptidestations, sz, pop, None)
+
+            self.displayaction('', enablebutton=True, progressval=-2)
+
+            if len(modglobal.temptidestations) == 0:
+                self.data.Logger.info('Cannot get tidestations')
+                return
+            #self.displayaction('', enablebutton=True, progressval=-2)
+            # self.data.statusbarclockspaused = False
+            self.Logger.info("CRV: Downloaded tidestations")
+        except:
+            self.data.Logger.info('Cannot get tidestations')
+            return
+
+        # example line: Ben Gunn 2017.csv
+        # we want to create tidestations list with each element containing eg.
+        # [ 'Ben Gunn', '2017', 'csv' ]
+        self.tides.tidestations = []
+        for line in tstations:
+            station = line[:-9]
+            year = line[-8:-4]
+            ext = line[-3:]
+            self.tides.tidestations.append([station, year, ext])
+
+        if len(self.tides.tidestations) > 0:
+            try:
+                with open(file, "wb") as f:
+                    writer = csv.writer(f)
+                    writer.writerows(self.tides.tidestations)
+                f.close()
+                self.Logger.info("CRV: Wrote tidestations to file " + file)
+            except csv.Error:
+                ok = False
+
+
+        return ok
+
     def crv_callback_checkrequiredsettings(self, instance, value):
         ok = True  # assume ok
 
@@ -8442,7 +8561,7 @@ class CRV(App):
         """
 
         # read list of tidestations
-        tidestations = self.data.gettidestations()
+        tidestations = self.gettidestations()
 
         screen_setting2 = Screen(name='screen_settings2')
         screen_setting2.bind(on_enter=self.settings_callback_onenter)

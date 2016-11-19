@@ -4,15 +4,16 @@ import kivy
 kivy.require('1.9.0')
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.label import Label
+from kivy.uix.progressbar import ProgressBar
+#from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.bubble import Bubble
+#from kivy.uix.bubble import Bubble
 #from kivy.logger import Logger
 #from tideinfo import CRVTideInfo
 from tideinfo import Tides
 from crvemail import CrvEmail
 from crvprofile import CrvProfile
-from crvMessage import MessageBox
+#from crvMessage import MessageBox
 
 import modglobal
 
@@ -324,20 +325,6 @@ class CrvData:
         except:
             return 0.0
 
-    def dopopup(self, mess, bindto=None):
-        if bindto is not None:
-            if modglobal.lastdopopup is not None:
-                if modglobal.lastdopopup == bindto:
-                    modglobal.lastdopopup = None
-                    self.Logger.debug('CRV:Ignore popup')
-                    return
-            modglobal.lastdopopup = bindto
-
-        content = Button(text='Dismiss')
-        popup = Popup(title=mess, content=content, auto_dismiss=True, size_hint=(None, None), size=(400, 100))
-        content.bind(on_press=popup.dismiss)
-        popup.open()
-        #if bindto is not None: bindto.focus = True
 
     def doparsedatetime(self, tstr):
         rdt = None
@@ -1885,111 +1872,115 @@ class CrvData:
 
         return self.availcgunits
 
-    def gettidestations(self):
-        """
-        Look for file cgtidestations.txt
-        If found use it - if not found, try to get tidestations from linz
-        """
-        crvpr = CrvProfile(self.Logger, 'gettidestations')
-        tss = []
-        ok = False
-        if len(self.tides.tidestations) == 0:
-            file = os.path.join(self.datadir, 'cgtidestations.csv')
-            try:
-                self.Logger.info('CRV: gettidestations: before open of ' + file)
-                with open(file, 'r') as f:
-                    reader = csv.reader(f)
-                    tslist = list(reader)
-                f.close()
-                self.tides.tidestations = tslist
-                self.Logger.info("CRV: Read tidestations from file %s", file)
-                ok = True
-            except (IOError, csv.Error):
-                # file didnt exist, try to ftp it.
-                self.Logger.info("CRV: Failed to read tidestations from file " + file)
-                ok = self.settidestations(file)
-
-        else:
-            tss = self.tides.tidestations
-
-        if ok:
-            ts = []
-            for n in self.tides.tidestations:
-                ts.append(n[0])
-            tss = list(set(ts))
-            tss.sort()
-
-        self.Logger.info('CRV: gettidestations. found ' + str(len(tss)))
-        crvpr.eprof()
-        return tss
-
-    def settidestations(self, file):
-        ok = True
-        try:
-            # ftp = localftp.FTP(self.linzhost)
-            # ftp.login(self.linzuser, self.linzpass)
-            #
-            # data = []
-            #
-            # data = ftp.nlst()
-            #
-            # ftp.quit()
-
-            currentYear = datetime.datetime.now().year
-            nextyear = currentYear - 2000 + 1
-            # e.g. baseurl = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports2016-17.csv"
-            baseURL = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports"
-
-            fromurl = baseURL + str(currentYear) + '-' + str(nextyear) + '.csv'
-            todata = []
-
-            # so update the tides. You need to use a thread as the ftp download
-            # is blocking
-            if not self.have_internet():
-                MessageBox(self, titleheader="Cannot update tidestations",
-                           message="Please ensure the network is connected and try again.")
-                return
-
-            #g = self.displayaction("Getting " + fromurl)
-            sz = 30000
-            #g = self.displayaction('... ' + str(sz) + ' (bytes - approx)')
-
-            #self.displayaction('', progressmax=sz, progressval=0)
-
-            #g = self.displayaction(
-            #    "Retrieving secondary tide ports for " + str(currentYear))
-
-            modglobal.mycurl.getdata(fromurl, todata, sz, None, None)
-
-            #self.displayaction('', enablebutton=True, progressval=-2)
-            # self.data.statusbarclockspaused = False
-            self.Logger.info("CRV: Downloaded tidestations")
-        except:
-            self.data.Logger.info('Cannot get tidestations')
-
-        # example line: Ben Gunn 2017.csv
-        # we want to create tidestations list with each element containing eg.
-        # [ 'Ben Gunn', '2017', 'csv' ]
-        self.tides.tidestations = []
-        for line in todata:
-            station = line[:-9]
-            year = line[-8:-4]
-            ext = line[-3:]
-            self.tides.tidestations.append([station, year, ext])
-
-        if len(self.tides.tidestations) > 0:
-            try:
-                with open(file, "wb") as f:
-                    writer = csv.writer(f)
-                    writer.writerows(self.tides.tidestations)
-                f.close()
-                self.Logger.info("CRV: Wrote tidestations to file " + file)
-            except csv.Error:
-                ok = False
-
-
-        return ok
-
+    # def gettidestations(self):
+    #     """
+    #     Look for file cgtidestations.txt
+    #     If found use it - if not found, try to get tidestations from linz
+    #     """
+    #     crvpr = CrvProfile(self.Logger, 'gettidestations')
+    #     tss = []
+    #     ok = False
+    #     if len(self.tides.tidestations) == 0:
+    #         file = os.path.join(self.datadir, 'cgtidestations.csv')
+    #         try:
+    #             self.Logger.info('CRV: gettidestations: before open of ' + file)
+    #             with open(file, 'r') as f:
+    #                 reader = csv.reader(f)
+    #                 tslist = list(reader)
+    #             f.close()
+    #             self.tides.tidestations = tslist
+    #             self.Logger.info("CRV: Read tidestations from file %s", file)
+    #             ok = True
+    #         except (IOError, csv.Error):
+    #             # file didnt exist, try to ftp it.
+    #             self.Logger.info("CRV: Failed to read tidestations from file " + file)
+    #             ok = self.settidestations(file)
+    #
+    #     else:
+    #         tss = self.tides.tidestations
+    #
+    #     if ok:
+    #         ts = []
+    #         for n in self.tides.tidestations:
+    #             ts.append(n[0])
+    #         tss = list(set(ts))
+    #         tss.sort()
+    #
+    #     self.Logger.info('CRV: gettidestations. found ' + str(len(tss)))
+    #     crvpr.eprof()
+    #     return tss
+    #
+    # def settidestations(self, file):
+    #     ok = True
+    #     try:
+    #         # ftp = localftp.FTP(self.linzhost)
+    #         # ftp.login(self.linzuser, self.linzpass)
+    #         #
+    #         # data = []
+    #         #
+    #         # data = ftp.nlst()
+    #         #
+    #         # ftp.quit()
+    #
+    #         currentYear = datetime.datetime.now().year
+    #         nextyear = currentYear - 2000 + 1
+    #         # e.g. baseurl = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports2016-17.csv"
+    #         baseURL = "http://www.linz.govt.nz/sites/default/files/docs/hydro/tidal-info/tide-tables/secondaryports"
+    #
+    #         fromurl = baseURL + str(currentYear) + '-' + str(nextyear) + '.csv'
+    #         todata = []
+    #
+    #         # so update the tides. You need to use a thread as the ftp download
+    #         # is blocking
+    #         if not self.have_internet():
+    #             MessageBox(self, titleheader="Cannot update tidestations",
+    #                        message="Please ensure the network is connected and try again.")
+    #             return
+    #
+    #         #g = self.displayaction("Getting " + fromurl)
+    #         sz = 30000
+    #         #g = self.displayaction('... ' + str(sz) + ' (bytes - approx)')
+    #
+    #         #self.displayaction('', progressmax=sz, progressval=0)
+    #
+    #         #g = self.displayaction(
+    #         #    "Retrieving secondary tide ports for " + str(currentYear))
+    #
+    #         tstations = modglobal.mycurl.getdata(fromurl, sz, , None)
+    #
+    #         if len(tstations) == 0:
+    #             self.data.Logger.info('Cannot get tidestations')
+    #             return
+    #         #self.displayaction('', enablebutton=True, progressval=-2)
+    #         # self.data.statusbarclockspaused = False
+    #         self.Logger.info("CRV: Downloaded tidestations")
+    #     except:
+    #         self.data.Logger.info('Cannot get tidestations')
+    #         return
+    #
+    #     # example line: Ben Gunn 2017.csv
+    #     # we want to create tidestations list with each element containing eg.
+    #     # [ 'Ben Gunn', '2017', 'csv' ]
+    #     self.tides.tidestations = []
+    #     for line in tstations:
+    #         station = line[:-9]
+    #         year = line[-8:-4]
+    #         ext = line[-3:]
+    #         self.tides.tidestations.append([station, year, ext])
+    #
+    #     if len(self.tides.tidestations) > 0:
+    #         try:
+    #             with open(file, "wb") as f:
+    #                 writer = csv.writer(f)
+    #                 writer.writerows(self.tides.tidestations)
+    #             f.close()
+    #             self.Logger.info("CRV: Wrote tidestations to file " + file)
+    #         except csv.Error:
+    #             ok = False
+    #
+    #
+    #     return ok
+    #
 
     def sendcrewlist(self):
         self.displayaction('Send Crew List', cleargrid=True, progressmax=5, progressval=-3)
